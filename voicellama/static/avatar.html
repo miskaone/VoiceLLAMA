@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="stylesheet" href="/static/css/avatar.css">
+    <title>TTS Avatar</title>
+</head>
+<body>
+    <div id="container">
+        <div class="glow" id="glow"></div>
+        <canvas id="canvas"></canvas>
+        <img id="avatar-logo" src="/images/avatar-logo.png" alt="Code Llama" class="idle">
+        <div id="context-container">
+            <div id="context-pie">
+                <span id="context-percentage">0%</span>
+            </div>
+            <div id="context-label">Context Window</div>
+        </div>
+        <div id="text-display"></div>
+        <div id="status">Connecting...</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="/static/js/avatar.js"></script>
+</body>
+</html>

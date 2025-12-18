@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="stylesheet" href="/static/css/settings.css">
+    <title>TTS Settings</title>
+</head>
+<body>
+    <div class="container">
+        <h1>TTS Settings</h1>
+
+        <div class="card">
+            <h2>Engine</h2>
+            <div class="engines">
+                <button class="engine-btn" data-engine="kokoro" onclick="setEngine('kokoro')">
+                    <div class="engine-name">Kokoro</div>
+                    <div class="engine-desc">Fast, 82M params</div>
+                </button>
+                <button class="engine-btn" data-engine="vibevoice" onclick="setEngine('vibevoice')">
+                    <div class="engine-name">VibeVoice</div>
+                    <div class="engine-desc">Quality, 0.5B</div>
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Voice</h2>
+            <div class="form-group">
+                <select id="voice" onchange="updateSettings()">
+                    <option value="af_heart">American Female - Heart (Warm)</option>
+                    <option value="af_bella">American Female - Bella</option>
+                    <option value="af_sarah">American Female - Sarah</option>
+                    <option value="am_adam">American Male - Adam</option>
+                    <option value="am_michael">American Male - Michael</option>
+                    <option value="bf_emma">British Female - Emma</option>
+                    <option value="bf_isabella">British Female - Isabella</option>
+                    <option value="bm_george">British Male - George</option>
+                    <option value="bm_lewis">British Male - Lewis</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Speed</h2>
+            <div class="form-group">
+                <input type="range" id="speed" min="0.5" max="2.0" step="0.1" value="1.0" onchange="updateSettings()">
+                <div class="speed-value"><span id="speedValue">1.0</span>x</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>TTS Enabled</h2>
+            <div class="toggle-container">
+                <span>Enable text-to-speech announcements</span>
+                <div class="toggle active" id="enabledToggle" onclick="toggleEnabled()"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Avatar</h2>
+            <div class="toggle-container">
+                <span>Enable visual avatar with waveform</span>
+                <div class="toggle" id="avatarToggle" onclick="toggleAvatar()"></div>
+            </div>
+            <button class="btn btn-secondary" style="margin-top: 15px;" onclick="openAvatarPopup()">Open Avatar Window</button>
+        </div>
+
+        <div class="card">
+            <h2>Chatter Level</h2>
+            <div class="chatter-options">
+                <button class="chatter-btn" data-level="sparse" onclick="setChatterLevel('sparse')">
+                    <div class="chatter-name">Sparse</div>
+                    <div class="chatter-desc">Questions only</div>
+                </button>
+                <button class="chatter-btn" data-level="summary" onclick="setChatterLevel('summary')">
+                    <div class="chatter-name">Summary</div>
+                    <div class="chatter-desc">Questions + summaries</div>
+                </button>
+                <button class="chatter-btn" data-level="verbose" onclick="setChatterLevel('verbose')">
+                    <div class="chatter-name">Verbose</div>
+                    <div class="chatter-desc">Full narration</div>
+                </button>
+                <button class="chatter-btn" data-level="custom" onclick="setChatterLevel('custom')">
+                    <div class="chatter-name">Custom</div>
+                    <div class="chatter-desc">Pick states</div>
+                </button>
+            </div>
+            <div class="custom-states" id="customStates">
+                <h3>Select which events trigger TTS:</h3>
+                <label class="state-checkbox">
+                    <input type="checkbox" id="stateQuestion" onchange="updateCustomStates()">
+                    <div class="state-info">
+                        <div class="state-name">Questions</div>
+                        <div class="state-desc">When Claude asks you a question</div>
+                    </div>
+                </label>
+                <label class="state-checkbox">
+                    <input type="checkbox" id="stateSummary" onchange="updateCustomStates()">
+                    <div class="state-info">
+                        <div class="state-name">Summaries</div>
+                        <div class="state-desc">Task completion summaries</div>
+                    </div>
+                </label>
+                <label class="state-checkbox">
+                    <input type="checkbox" id="stateDetail" onchange="updateCustomStates()">
+                    <div class="state-info">
+                        <div class="state-name">Details</div>
+                        <div class="state-desc">Detailed step-by-step narration</div>
+                    </div>
+                </label>
+            </div>
+            <div class="chatter-notice" id="chatterNotice">
+                Changing level may require restarting Claude session to take effect
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Test</h2>
+            <input type="text" class="test-input" id="testText" placeholder="Enter text to test..." value="Hello, this is a test of the text to speech system.">
+            <button class="btn btn-primary" onclick="testTTS()">Test Voice</button>
+            <div class="status" id="status"></div>
+        </div>
+
+        <button class="btn btn-success" onclick="saveSettings()">Save Settings</button>
+    </div>
+
+    <script src="/static/js/settings.js"></script>
+</body>
+</html>

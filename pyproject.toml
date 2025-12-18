@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "voicellama"
+version = "0.1.0"
+description = "Ultra-fast TTS API Server powered by Kokoro"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10, <3.14"
+authors = [
+    { name = "miskaone" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Framework :: FastAPI",
+]
+dependencies = [
+    "kokoro>=0.9.4",
+    "fastapi>=0.100.0",
+    "uvicorn[standard]>=0.20.0",
+    "pydantic>=2.0.0",
+    "soundfile",
+    "python-multipart",
+    "loguru",
+    "numpy",
+]
+
+[project.scripts]
+voicellama = "voicellama.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/miskaone/VoiceLLAMA"
+Repository = "https://github.com/miskaone/VoiceLLAMA"
+
+[tool.hatch.build.targets.wheel]
+packages = ["voicellama"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+addopts = "-v"

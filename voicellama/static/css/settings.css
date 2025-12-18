@@ -1,0 +1,340 @@
+/* TTS Settings Page Styles */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #fff;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2em;
+}
+
+.card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.card h2 {
+    margin-bottom: 20px;
+    font-size: 1.2em;
+    color: #4fc3f7;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+select, input[type="range"] {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 1em;
+}
+
+select option {
+    background: #1a1a2e;
+    color: #fff;
+}
+
+input[type="range"] {
+    padding: 0;
+    height: 8px;
+    -webkit-appearance: none;
+    cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #4fc3f7;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.speed-value {
+    text-align: center;
+    font-size: 1.5em;
+    margin-top: 10px;
+    color: #4fc3f7;
+}
+
+.toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.toggle {
+    width: 60px;
+    height: 30px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 15px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.toggle.active {
+    background: #4caf50;
+}
+
+.toggle::after {
+    content: '';
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    background: #fff;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+}
+
+.toggle.active::after {
+    transform: translateX(30px);
+}
+
+.btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+    margin-bottom: 10px;
+}
+
+.btn:hover {
+    transform: scale(1.02);
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4fc3f7, #29b6f6);
+    color: #000;
+    font-weight: 600;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #66bb6a, #43a047);
+    color: #fff;
+    font-weight: 600;
+}
+
+.btn-secondary {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+}
+
+.test-input {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 1em;
+    margin-bottom: 10px;
+}
+
+.test-input::placeholder {
+    color: rgba(255,255,255,0.5);
+}
+
+.status {
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    display: none;
+}
+
+.status.success {
+    background: rgba(76, 175, 80, 0.3);
+    display: block;
+}
+
+.status.error {
+    background: rgba(244, 67, 54, 0.3);
+    display: block;
+}
+
+/* Engine selection buttons */
+.engines {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.engine-btn {
+    padding: 15px 10px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.engine-btn.active {
+    border-color: #4fc3f7;
+    background: rgba(79, 195, 247, 0.2);
+}
+
+.engine-btn:hover {
+    border-color: #4fc3f7;
+}
+
+.engine-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.engine-desc {
+    font-size: 0.75em;
+    opacity: 0.7;
+}
+
+/* Chatter level options */
+.chatter-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.chatter-btn {
+    padding: 15px 10px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.chatter-btn.active {
+    border-color: #ab47bc;
+    background: rgba(171, 71, 188, 0.2);
+}
+
+.chatter-btn:hover {
+    border-color: #ab47bc;
+}
+
+.chatter-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.chatter-desc {
+    font-size: 0.75em;
+    opacity: 0.7;
+}
+
+/* Custom states panel */
+.custom-states {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 8px;
+    background: rgba(171, 71, 188, 0.1);
+    border: 1px solid rgba(171, 71, 188, 0.3);
+    display: none;
+}
+
+.custom-states.visible {
+    display: block;
+}
+
+.custom-states h3 {
+    font-size: 0.9em;
+    margin-bottom: 12px;
+    color: #ab47bc;
+}
+
+.state-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.state-checkbox:last-child {
+    margin-bottom: 0;
+}
+
+.state-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    accent-color: #ab47bc;
+    cursor: pointer;
+}
+
+.state-checkbox .state-info {
+    flex: 1;
+}
+
+.state-checkbox .state-name {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.state-checkbox .state-desc {
+    font-size: 0.8em;
+    opacity: 0.7;
+}
+
+/* Chatter notice with neon effect */
+.chatter-notice {
+    margin-top: 15px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 0.85em;
+    background: rgba(255,255,255,0.1);
+    border-left: 3px solid rgba(255,255,255,0.3);
+    color: rgba(255,255,255,0.7);
+    transition: all 0.3s ease;
+}
+
+.chatter-notice.changed {
+    background: rgba(255, 0, 60, 0.25);
+    border-left: 3px solid #ff003c;
+    color: #ff003c;
+    text-shadow: 0 0 10px #ff003c, 0 0 20px #ff003c;
+    animation: neon-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes neon-pulse {
+    0%, 100% { text-shadow: 0 0 10px #ff003c, 0 0 20px #ff003c; }
+    50% { text-shadow: 0 0 15px #ff003c, 0 0 30px #ff003c, 0 0 40px #ff003c; }
+}

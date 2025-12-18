@@ -1,0 +1,32 @@
+# VoiceLLAMA Configuration Example
+# Copy this file to voicellama.toml and customize as needed
+
+[server]
+port = 8333
+host = "0.0.0.0"
+log_level = "INFO"      # DEBUG, INFO, WARNING, ERROR
+log_format = "dev"      # "dev" for human-readable, "json" for production
+
+# Rate limiting
+rate_limit_requests = 100   # Max requests per window
+rate_limit_window = 60      # Window size in seconds
+
+# CORS settings
+cors_allow_all = false      # Set to true for development
+# cors_origins = ["http://localhost:3000", "https://myapp.com"]
+
+[tts]
+default_voice = "af_heart"
+default_speed = 1.0
+enabled = true
+cache_enabled = true
+cache_ttl = 3600            # Cache TTL in seconds (1 hour)
+
+[avatar]
+enabled = false
+
+[chatter]
+level = "sparse"            # sparse, summary, verbose, custom
+question = true
+summary = false
+detail = false
