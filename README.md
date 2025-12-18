@@ -12,6 +12,7 @@
 <p align="center">
   <a href="#installation">Installation</a> •
   <a href="#quick-start">Quick Start</a> •
+  <a href="#claude-code-integration">Claude Code</a> •
   <a href="#api-reference">API</a> •
   <a href="#configuration">Config</a> •
   <a href="#uninstall">Uninstall</a>
@@ -88,6 +89,63 @@ response = requests.post(
 
 with open("speech.wav", "wb") as f:
     f.write(response.content)
+```
+
+## Claude Code Integration
+
+VoiceLLAMA includes hooks for [Claude Code](https://claude.com/claude-code) that make Claude speak responses aloud.
+
+### Setup Hooks
+
+Add to your `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [{"type": "command", "command": "python -m voicellama.hooks.tts_notify"}]
+      },
+      {
+        "matcher": ".*",
+        "hooks": [{"type": "command", "command": "python -m voicellama.hooks.tts_tool_notify"}]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [{"type": "command", "command": "python -m voicellama.hooks.context_tracker"}]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": ".*",
+        "hooks": [{"type": "command", "command": "python -m voicellama.hooks.tts_stop_notify"}]
+      }
+    ]
+  }
+}
+```
+
+### Chatter Levels
+
+Control how much Claude speaks via the web UI at `http://localhost:8333`:
+
+| Level | What's Announced |
+|-------|------------------|
+| **sparse** | Only questions that need your input |
+| **summary** | Questions + task completion summaries |
+| **verbose** | Everything including tool usage |
+
+### Manual Announcements
+
+```bash
+# Announce with default settings
+python -m voicellama.hooks.announce "Hello world"
+
+# Specify message type
+python -m voicellama.hooks.announce "Task complete" summary
 ```
 
 ## Available Voices
