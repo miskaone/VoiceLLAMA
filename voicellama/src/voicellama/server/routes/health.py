@@ -8,13 +8,36 @@ from voicellama.server.services import tts_cache, request_queue, metrics, audio_
 router = APIRouter(tags=["health"])
 
 
+def get_model_status() -> dict:
+    """Check if the TTS model is loaded and ready."""
+    try:
+        from voicellama.server.routes.tts import _pipeline
+        return {
+            "loaded": _pipeline is not None,
+            "ready": _pipeline is not None,
+            "model": "Kokoro-82M"
+        }
+    except Exception:
+        return {
+            "loaded": False,
+            "ready": False,
+            "model": "Kokoro-82M",
+            "error": "Unable to check model status"
+        }
+
+
 @router.get("/health")
 async def health():
     """Server health check."""
+    model_status = get_model_status()
+    
+    # Determine overall health status
+    overall_status = "ok" if model_status.get("ready", False) else "degraded"
+    
     return {
-        "status": "ok",
+        "status": overall_status,
         "version": "0.1.0",
-        "model": "Kokoro-82M",
+        "model": model_status,
         "cache": tts_cache.get_stats(),
         "queue": request_queue.get_stats(),
         "formats": audio_encoder.get_supported_formats()

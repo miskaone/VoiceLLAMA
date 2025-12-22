@@ -46,9 +46,10 @@ def main():
 
         log(f"Announcing: {text}")
 
-        # Use voicellama.hooks.announce module
+        # Use announce.py script directly (same directory as this hook)
+        announce_script = Path(__file__).parent / 'announce.py'
         subprocess.Popen(
-            [sys.executable, '-m', 'voicellama.hooks.announce', text, 'question'],
+            [sys.executable, str(announce_script), text, 'question'],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             start_new_session=True

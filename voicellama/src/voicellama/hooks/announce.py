@@ -10,11 +10,70 @@ Message types:
 """
 import sys
 import json
+import os
+import subprocess
+import tempfile
+from pathlib import Path
 
 import requests
 
 
 VOICELLAMA_URL = "http://localhost:8333"
+
+
+def find_audio_player():
+    """Find an available audio player."""
+    # Try ffplay first (works well on Windows/WSL)
+    for player in ['ffplay.exe', 'ffplay', 'mpv', 'aplay', 'paplay']:
+        try:
+            result = subprocess.run(['which', player], capture_output=True, text=True)
+            if result.returncode == 0:
+                return result.stdout.strip()
+        except Exception:
+            pass
+    # Fallback to Windows ffplay path
+    win_ffplay = "/mnt/c/Users/mikel/AppData/Local/Microsoft/WinGet/Links/ffplay.exe"
+    if Path(win_ffplay).exists():
+        return win_ffplay
+    return None
+
+
+def play_audio(audio_data: bytes) -> bool:
+    """Play audio data using available player."""
+    player = find_audio_player()
+    if not player:
+        return False
+
+    try:
+        # Use Windows temp directory for WSL/Windows compatibility
+        if 'ffplay.exe' in player:
+            # Windows ffplay needs Windows paths
+            temp_dir = Path('/mnt/c/temp')
+            temp_dir.mkdir(exist_ok=True)
+            temp_path = temp_dir / f'voicellama_{os.getpid()}.wav'
+            temp_path.write_bytes(audio_data)
+            # Convert to Windows path format
+            win_path = str(temp_path).replace('/mnt/c', 'C:').replace('/', '\\')
+            subprocess.run(
+                [player, '-nodisp', '-autoexit', '-loglevel', 'quiet', win_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            temp_path.unlink()
+        else:
+            # Linux audio player - use normal temp
+            with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as f:
+                f.write(audio_data)
+                temp_path = f.name
+            subprocess.run(
+                [player, '-nodisp', '-autoexit', '-loglevel', 'quiet', temp_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            os.unlink(temp_path)
+        return True
+    except Exception:
+        return False
 
 
 def get_settings():
@@ -53,7 +112,7 @@ def should_announce(message_type: str, chatter_level: str, custom_states: dict =
 
 
 def announce(text: str, voice: str = "af_heart", speed: float = 1.0) -> dict:
-    """Send text to VoiceLLAMA API for TTS."""
+    """Send text to VoiceLLAMA API for TTS and play the audio."""
     payload = {
         "text": text,
         "voice": voice,
@@ -64,7 +123,11 @@ def announce(text: str, voice: str = "af_heart", speed: float = 1.0) -> dict:
         response = requests.post(f"{VOICELLAMA_URL}/tts/announce", json=payload, timeout=30)
 
         if response.status_code == 200:
-            return {"status": "success", "text": text}
+            # Play the audio
+            if play_audio(response.content):
+                return {"status": "success", "text": text, "played": True}
+            else:
+                return {"status": "success", "text": text, "played": False, "warning": "No audio player found"}
         else:
             return {"status": "error", "error": response.text}
 

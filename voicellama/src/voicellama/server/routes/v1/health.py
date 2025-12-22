@@ -1,0 +1,7 @@
+"""Health check endpoints for API v1."""
+
+# Re-export v1 routes (for now, same as current routes)
+from voicellama.server.routes import health
+
+router = health.router
+

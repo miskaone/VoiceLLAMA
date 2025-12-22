@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python -m voicellama.hooks.tts_notify"
+            "command": "python3 /mnt/c/dev/VoiceLLAMA/voicellama/src/voicellama/hooks/tts_notify.py"
           }
         ]
       },
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python -m voicellama.hooks.tts_tool_notify"
+            "command": "python3 /mnt/c/dev/VoiceLLAMA/voicellama/src/voicellama/hooks/tts_tool_notify.py"
           }
         ]
       }
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python -m voicellama.hooks.context_tracker"
+            "command": "python3 /mnt/c/dev/VoiceLLAMA/voicellama/src/voicellama/hooks/context_tracker.py"
           }
         ]
       }
@@ -37,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python -m voicellama.hooks.tts_stop_notify"
+            "command": "python3 /mnt/c/dev/VoiceLLAMA/voicellama/src/voicellama/hooks/tts_stop_notify.py"
           }
         ]
       }
