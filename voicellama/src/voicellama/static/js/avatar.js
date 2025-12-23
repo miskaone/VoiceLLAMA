@@ -59,6 +59,7 @@ let dataArray = null;
 let gainNode = null;
 let isPlaying = false;
 let currentAudio = null;
+let audioEnabled = false;
 
 function initAudio() {
     if (!audioContext) {
@@ -76,9 +77,66 @@ function initAudio() {
     }
     // Resume if suspended (browser autoplay policy)
     if (audioContext.state === 'suspended') {
-        audioContext.resume();
+        audioContext.resume().then(() => {
+            audioEnabled = true;
+            hideAudioPrompt();
+            console.log('AudioContext resumed');
+        });
+    } else {
+        audioEnabled = true;
+        hideAudioPrompt();
     }
 }
+
+function showAudioPrompt() {
+    let prompt = document.getElementById('audio-prompt');
+    if (!prompt) {
+        prompt = document.createElement('div');
+        prompt.id = 'audio-prompt';
+        prompt.innerHTML = '<span>Click anywhere to enable audio visualization</span>';
+        prompt.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 200, 0, 0.9);
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1000;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+        `;
+        document.body.appendChild(prompt);
+    }
+    prompt.style.display = 'block';
+}
+
+function hideAudioPrompt() {
+    const prompt = document.getElementById('audio-prompt');
+    if (prompt) {
+        prompt.style.display = 'none';
+    }
+}
+
+// Enable audio on any user gesture
+function enableAudioOnGesture() {
+    if (!audioEnabled) {
+        initAudio();
+    }
+}
+
+// Add click listener to enable audio
+document.addEventListener('click', enableAudioOnGesture, { once: false });
+document.addEventListener('touchstart', enableAudioOnGesture, { once: false });
+document.addEventListener('keydown', enableAudioOnGesture, { once: false });
+
+// Show prompt on page load
+document.addEventListener('DOMContentLoaded', () => {
+    showAudioPrompt();
+});
 
 async function playAudio(base64Audio) {
     initAudio();
