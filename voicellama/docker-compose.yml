@@ -1,0 +1,132 @@
+# VoiceLLAMA Docker Compose Configuration
+#
+# Usage:
+#   CPU:  docker compose up -d
+#   GPU:  docker compose --profile gpu up -d
+#
+# With model caching (recommended):
+#   docker compose up -d
+#
+# Development mode (with hot reload):
+#   docker compose --profile dev up
+#
+# View logs:
+#   docker compose logs -f voicellama
+
+services:
+  # ==========================================================================
+  # Main VoiceLLAMA service (CPU)
+  # ==========================================================================
+  voicellama:
+    build:
+      context: .
+      target: cpu
+    image: voicellama:latest
+    container_name: voicellama
+    restart: unless-stopped
+    ports:
+      - "8333:8333"
+    environment:
+      # Server configuration
+      - HOST=0.0.0.0
+      - PORT=8333
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+
+      # TTS configuration
+      - TTS_CACHE_ENABLED=true
+      - TTS_CACHE_MAX_SIZE=100
+      - TTS_CACHE_MAX_MEMORY_MB=500
+      - TTS_CACHE_TTL_SECONDS=3600
+
+      # Queue configuration
+      - QUEUE_ENABLED=true
+      - QUEUE_MAX_CONCURRENT=2
+      - QUEUE_MAX_SIZE=50
+      - QUEUE_TIMEOUT=60
+
+      # Security (uncomment to enable)
+      # - API_KEY=your-secret-key
+      # - CORS_ORIGINS=https://yourdomain.com
+
+      # Performance
+      - PRELOAD_MODEL=true
+    volumes:
+      # Persist Kokoro model cache
+      - voicellama-cache:/home/voicellama/.cache
+      # Optional: custom config file
+      # - ./voicellama.toml:/app/voicellama.toml:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8333/v1/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+
+  # ==========================================================================
+  # GPU-enabled VoiceLLAMA service
+  # ==========================================================================
+  voicellama-gpu:
+    profiles:
+      - gpu
+    build:
+      context: .
+      target: gpu
+    image: voicellama:gpu
+    container_name: voicellama-gpu
+    restart: unless-stopped
+    ports:
+      - "8333:8333"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8333
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+      - TTS_CACHE_ENABLED=true
+      - QUEUE_MAX_CONCURRENT=4  # More concurrent with GPU
+      - PRELOAD_MODEL=true
+    volumes:
+      - voicellama-cache:/home/voicellama/.cache
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # ==========================================================================
+  # Development service (with hot reload)
+  # ==========================================================================
+  voicellama-dev:
+    profiles:
+      - dev
+    build:
+      context: .
+      target: cpu
+    image: voicellama:dev
+    container_name: voicellama-dev
+    ports:
+      - "8333:8333"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8333
+      - LOG_LEVEL=DEBUG
+      - LOG_FORMAT=dev
+      - TTS_CACHE_ENABLED=false
+    volumes:
+      # Mount source code for hot reload
+      - ./src:/app/src:ro
+      - ./voicellama.toml:/app/voicellama.toml:ro
+      - voicellama-cache:/home/voicellama/.cache
+    command: ["uvicorn", "voicellama.server.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8333", "--reload"]
+
+volumes:
+  voicellama-cache:
+    name: voicellama-cache

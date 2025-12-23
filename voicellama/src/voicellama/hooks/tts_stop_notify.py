@@ -49,12 +49,27 @@ def get_last_assistant_message(stop_data: dict) -> str:
     if transcript_path:
         try:
             with open(transcript_path, 'r') as f:
-                data = json.load(f)
-                if isinstance(data, list):
-                    transcript = data
-                elif isinstance(data, dict):
-                    transcript = data.get('messages', data.get('transcript', []))
-        except (OSError, json.JSONDecodeError) as e:
+                # Try JSONL format first (one JSON object per line)
+                content = f.read()
+                lines = content.strip().split('\n')
+                for line in lines:
+                    if line.strip():
+                        try:
+                            transcript.append(json.loads(line))
+                        except json.JSONDecodeError:
+                            pass
+
+                # If JSONL parsing got nothing, try as single JSON
+                if not transcript:
+                    try:
+                        data = json.loads(content)
+                        if isinstance(data, list):
+                            transcript = data
+                        elif isinstance(data, dict):
+                            transcript = data.get('messages', data.get('transcript', []))
+                    except json.JSONDecodeError:
+                        pass
+        except OSError as e:
             log(f"Error reading transcript: {e}")
 
     if not transcript:
@@ -63,10 +78,40 @@ def get_last_assistant_message(stop_data: dict) -> str:
     if not transcript:
         return ''
 
+    log(f"Transcript has {len(transcript)} entries")
+
+    # Check for compacted transcript with summary
+    for msg in transcript:
+        if msg.get('type') == 'summary':
+            summary = msg.get('summary', '')
+            if summary:
+                log(f"Found compacted summary: {summary}")
+                return summary
+
+    # Look for assistant messages (standard format)
     for msg in reversed(transcript):
-        if msg.get('role') == 'assistant':
+        role = msg.get('role')
+        msg_type = msg.get('type')
+
+        # Handle type='assistant' format
+        if msg_type == 'assistant':
+            message = msg.get('message', {})
+            if isinstance(message, dict):
+                content = message.get('content', '')
+                if isinstance(content, str) and content:
+                    return content
+                elif isinstance(content, list):
+                    text_parts = []
+                    for item in content:
+                        if isinstance(item, dict) and item.get('type') == 'text':
+                            text_parts.append(item.get('text', ''))
+                    if text_parts:
+                        return ' '.join(text_parts)
+
+        # Handle role='assistant' format
+        elif role == 'assistant':
             content = msg.get('content', '')
-            if isinstance(content, str):
+            if isinstance(content, str) and content:
                 return content
             elif isinstance(content, list):
                 text_parts = []
@@ -75,7 +120,6 @@ def get_last_assistant_message(stop_data: dict) -> str:
                         text_parts.append(item.get('text', ''))
                 if text_parts:
                     return ' '.join(text_parts)
-            break
 
     return ''
 
@@ -83,43 +127,54 @@ def get_last_assistant_message(stop_data: dict) -> str:
 def extract_summary(stop_data: dict) -> str:
     """Extract a summary announcement from stop data."""
     reason = stop_data.get('stop_reason', '')
-    transcript = stop_data.get('transcript', [])
 
-    last_message = ''
-    if transcript:
-        for msg in reversed(transcript):
-            if msg.get('role') == 'assistant':
-                content = msg.get('content', '')
-                if isinstance(content, str):
-                    last_message = content
-                elif isinstance(content, list):
-                    for item in content:
-                        if isinstance(item, dict) and item.get('type') == 'text':
-                            last_message = item.get('text', '')
-                            break
-                break
+    # Get the last assistant message using the proper transcript reader
+    last_message = get_last_assistant_message(stop_data)
+    log(f"Last message length: {len(last_message)}")
 
-    if last_message:
-        lower_msg = last_message.lower()
+    if not last_message:
+        if reason == 'end_turn':
+            return "Ready for next request"
+        elif reason == 'tool_use':
+            return None
+        elif reason == 'max_tokens':
+            return "Response complete"
+        return "Task complete"
 
-        if any(lower_msg.startswith(word) for word in ['done', 'finished', 'completed', 'i\'ve', 'i have']):
-            first_sentence = last_message.split('.')[0]
-            if len(first_sentence) <= 100:
-                return first_sentence
-            return first_sentence[:97] + "..."
+    # Clean the message for analysis
+    clean_msg = last_message.strip()
 
-        if any(word in lower_msg for word in ['complete', 'finished', 'done', 'implemented', 'added', 'fixed', 'created']):
-            lines = last_message.split('\n')
-            for line in lines[:3]:
-                if line.strip() and len(line) < 100:
-                    return line.strip()
+    # Try to find a markdown heading as summary
+    heading_match = re.search(r'^##?\s+(.+)$', clean_msg, re.MULTILINE)
+    if heading_match:
+        heading = heading_match.group(1).strip()
+        if len(heading) <= 100:
+            log(f"Using heading: {heading}")
+            return heading
 
-    if reason == 'end_turn':
-        return "Ready for next request"
-    elif reason == 'tool_use':
-        return None
-    elif reason == 'max_tokens':
-        return "Response complete"
+    # Try first non-empty line that's not code
+    lines = clean_msg.split('\n')
+    for line in lines[:5]:
+        line = line.strip()
+        # Skip code blocks, empty lines, markdown syntax
+        if not line or line.startswith('```') or line.startswith('|') or line.startswith('-'):
+            continue
+        # Remove markdown formatting
+        line = re.sub(r'^#+\s*', '', line)
+        line = re.sub(r'\*+([^*]+)\*+', r'\1', line)
+        line = re.sub(r'`([^`]+)`', r'\1', line)
+        if line and len(line) >= 10:
+            if len(line) <= 120:
+                log(f"Using first line: {line}")
+                return line
+            return line[:117] + "..."
+
+    # Fallback: first sentence
+    first_sentence = clean_msg.split('.')[0].strip()
+    if first_sentence and len(first_sentence) >= 10:
+        if len(first_sentence) <= 120:
+            return first_sentence
+        return first_sentence[:117] + "..."
 
     return "Task complete"
 

@@ -21,7 +21,109 @@ VoiceLLAMA provides a production-ready FastAPI server for converting text to spe
 - Kokoro TTS library (install separately)
 - ffmpeg (optional, for MP3/OGG encoding)
 
-## Installation
+## One-Click Installation
+
+The fastest way to get started is using the one-click installer:
+
+### Windows
+
+```batch
+# Option 1: Double-click
+install.bat
+
+# Option 2: PowerShell
+.\install.ps1
+```
+
+### Linux / macOS / WSL
+
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+### Installer Options
+
+| Option | Description |
+|--------|-------------|
+| `--no-hooks` | Skip Claude Code hooks configuration |
+| `--no-venv` | Install globally (not recommended) |
+| `--dev` | Install development dependencies |
+| `--start` | Start server after installation |
+
+Example:
+```bash
+./install.sh --dev --start
+```
+
+The installer will:
+1. Check for Python 3.11+
+2. Create a virtual environment
+3. Install VoiceLLAMA and Kokoro
+4. Configure Claude Code hooks (optional)
+5. Create start scripts
+
+## Docker Installation
+
+Run VoiceLLAMA in a container with all dependencies included:
+
+### Quick Start (CPU)
+
+```bash
+# Using Docker Compose (recommended)
+docker compose up -d
+
+# Or build and run directly
+docker build -t voicellama .
+docker run -p 8333:8333 voicellama
+```
+
+### GPU Support
+
+```bash
+# Build GPU image
+docker build --target gpu -t voicellama:gpu .
+
+# Run with GPU
+docker run --gpus all -p 8333:8333 voicellama:gpu
+
+# Or using Docker Compose
+docker compose --profile gpu up -d
+```
+
+### Docker Compose Profiles
+
+| Profile | Command | Description |
+|---------|---------|-------------|
+| (default) | `docker compose up -d` | CPU-only, production |
+| `gpu` | `docker compose --profile gpu up -d` | GPU-enabled |
+| `dev` | `docker compose --profile dev up` | Development with hot reload |
+
+### Persistent Model Cache
+
+The Kokoro model (~200MB) is cached in a Docker volume. To persist across container rebuilds:
+
+```bash
+# Model cache is automatically persisted in 'voicellama-cache' volume
+docker compose up -d
+
+# View volume
+docker volume ls | grep voicellama
+```
+
+### Environment Variables
+
+Configure via `docker-compose.yml` or pass directly:
+
+```bash
+docker run -p 8333:8333 \
+  -e LOG_LEVEL=DEBUG \
+  -e PRELOAD_MODEL=true \
+  -e API_KEY=your-secret-key \
+  voicellama
+```
+
+## Manual Installation
 
 ### Using pip
 
