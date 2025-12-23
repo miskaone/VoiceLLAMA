@@ -14,7 +14,7 @@ import requests
 from pathlib import Path
 
 
-VOICELLAMA_URL = "http://localhost:8333/context"
+VOICELLAMA_URL = os.getenv("VOICELLAMA_URL", "http://localhost:8333") + "/context"
 MAX_CONTEXT = 200000
 BASE_TOKENS = 21500
 

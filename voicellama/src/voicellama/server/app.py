@@ -1,6 +1,7 @@
 """FastAPI application factory for VoiceLLAMA."""
 
 import os
+import subprocess
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -13,19 +14,93 @@ from voicellama.server.middleware import setup_middleware, configure_logging, ge
 from voicellama.server.services import metrics
 
 
+def _find_audio_player():
+    """Find an available audio player for startup sound."""
+    import shutil
+
+    # Try to find players using shutil.which (cross-platform)
+    for player in ['ffplay', 'ffplay.exe', 'mpv', 'aplay', 'paplay']:
+        found = shutil.which(player)
+        if found:
+            return found
+
+    # Fallback paths for Windows
+    win_paths = [
+        os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\WinGet\Links\ffplay.exe"),
+        r"C:\Program Files\ffmpeg\bin\ffplay.exe",
+        r"C:\ffmpeg\bin\ffplay.exe",
+    ]
+    for path in win_paths:
+        if Path(path).exists():
+            return path
+
+    # Fallback for WSL - check common Windows user paths
+    if Path("/mnt/c/Users").exists():
+        try:
+            for user_dir in Path("/mnt/c/Users").iterdir():
+                if user_dir.is_dir() and user_dir.name not in ("Public", "Default", "Default User", "All Users"):
+                    wsl_ffplay = user_dir / "AppData/Local/Microsoft/WinGet/Links/ffplay.exe"
+                    if wsl_ffplay.exists():
+                        return str(wsl_ffplay)
+        except (PermissionError, OSError):
+            pass
+
+    return None
+
+
+def _play_startup_sound():
+    """Play the startup sound if available."""
+    # Look for startup sound in media directory
+    media_dir = Path(__file__).parent.parent / "media"
+    sound_file = media_dir / "winamp-demo.mp3"
+
+    if not sound_file.exists():
+        return False
+
+    player = _find_audio_player()
+    if not player:
+        return False
+
+    try:
+        if 'ffplay.exe' in player:
+            # Convert WSL path to Windows path for ffplay.exe
+            win_path = str(sound_file).replace('/mnt/c', 'C:').replace('/', '\\')
+            subprocess.Popen(
+                [player, '-nodisp', '-autoexit', '-loglevel', 'quiet', win_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+        else:
+            subprocess.Popen(
+                [player, '-nodisp', '-autoexit', '-loglevel', 'quiet', str(sound_file)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+        return True
+    except Exception:
+        return False
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
     logger = get_logger('voicellama')
-    
+
     # Startup
     logger.info("VoiceLLAMA server starting up")
     if os.getenv('PRELOAD_MODEL', 'false').lower() == 'true':
         from voicellama.server.routes.tts import load_pipeline
         load_pipeline()
-    
+
+    # Play startup sound if enabled
+    if os.getenv('STARTUP_SOUND', 'false').lower() in ('true', '1', 'yes'):
+        if _play_startup_sound():
+            logger.info("Startup sound played")
+        else:
+            logger.warning("Startup sound not available")
+
     yield
-    
+
     # Shutdown
     logger.info("VoiceLLAMA server shutting down")
 

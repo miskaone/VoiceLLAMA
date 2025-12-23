@@ -18,23 +18,40 @@ from pathlib import Path
 import requests
 
 
-VOICELLAMA_URL = "http://localhost:8333"
+VOICELLAMA_URL = os.getenv("VOICELLAMA_URL", "http://localhost:8333")
 
 
 def find_audio_player():
     """Find an available audio player."""
-    # Try ffplay first (works well on Windows/WSL)
-    for player in ['ffplay.exe', 'ffplay', 'mpv', 'aplay', 'paplay']:
+    import shutil
+
+    # Try to find players using shutil.which (cross-platform)
+    for player in ['ffplay', 'ffplay.exe', 'mpv', 'aplay', 'paplay']:
+        found = shutil.which(player)
+        if found:
+            return found
+
+    # Fallback paths for Windows
+    win_paths = [
+        os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\WinGet\Links\ffplay.exe"),
+        r"C:\Program Files\ffmpeg\bin\ffplay.exe",
+        r"C:\ffmpeg\bin\ffplay.exe",
+    ]
+    for path in win_paths:
+        if Path(path).exists():
+            return path
+
+    # Fallback for WSL - check common Windows user paths
+    if Path("/mnt/c/Users").exists():
         try:
-            result = subprocess.run(['which', player], capture_output=True, text=True)
-            if result.returncode == 0:
-                return result.stdout.strip()
-        except Exception:
+            for user_dir in Path("/mnt/c/Users").iterdir():
+                if user_dir.is_dir() and user_dir.name not in ("Public", "Default", "Default User", "All Users"):
+                    wsl_ffplay = user_dir / "AppData/Local/Microsoft/WinGet/Links/ffplay.exe"
+                    if wsl_ffplay.exists():
+                        return str(wsl_ffplay)
+        except (PermissionError, OSError):
             pass
-    # Fallback to Windows ffplay path
-    win_ffplay = "/mnt/c/Users/mikel/AppData/Local/Microsoft/WinGet/Links/ffplay.exe"
-    if Path(win_ffplay).exists():
-        return win_ffplay
+
     return None
 
 

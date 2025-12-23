@@ -15,7 +15,7 @@ import requests
 from pathlib import Path
 
 
-VOICELLAMA_URL = "http://localhost:8333"
+VOICELLAMA_URL = os.getenv("VOICELLAMA_URL", "http://localhost:8333")
 
 
 def log(msg):

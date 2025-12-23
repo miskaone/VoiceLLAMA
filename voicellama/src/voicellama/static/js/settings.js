@@ -187,12 +187,27 @@ async function testTTS() {
         });
 
         if (res.ok) {
-            showStatus('Audio sent to player!', 'success');
+            // Get audio blob and play it
+            const audioBlob = await res.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+
+            audio.onended = () => {
+                URL.revokeObjectURL(audioUrl);
+            };
+
+            audio.onerror = () => {
+                showStatus('Audio playback failed', 'error');
+                URL.revokeObjectURL(audioUrl);
+            };
+
+            await audio.play();
+            showStatus('Playing audio...', 'success');
         } else {
             showStatus('Generation failed', 'error');
         }
     } catch (e) {
-        showStatus('Connection error', 'error');
+        showStatus('Connection error: ' + e.message, 'error');
     }
 }
 

@@ -32,6 +32,7 @@ class ServerConfig:
     rate_limit_window: int = 60
     cors_allow_all: bool = False
     cors_origins: List[str] = field(default_factory=list)
+    startup_sound: bool = False  # Play sound when server starts
 
 
 @dataclass
@@ -124,6 +125,8 @@ class Config:
                 self.server.cors_allow_all = server["cors_allow_all"]
             if "cors_origins" in server:
                 self.server.cors_origins = server["cors_origins"]
+            if "startup_sound" in server:
+                self.server.startup_sound = server["startup_sound"]
 
         # TTS config
         if "tts" in data:
@@ -175,6 +178,8 @@ class Config:
             self.server.cors_allow_all = cors_all.lower() in ("true", "1", "yes")
         if cors_origins := os.getenv("CORS_ORIGINS"):
             self.server.cors_origins = [o.strip() for o in cors_origins.split(",")]
+        if startup_sound := os.getenv("STARTUP_SOUND"):
+            self.server.startup_sound = startup_sound.lower() in ("true", "1", "yes")
 
         # TTS config
         if voice := os.getenv("DEFAULT_VOICE"):
