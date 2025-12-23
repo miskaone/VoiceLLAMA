@@ -38,11 +38,13 @@ chmod +x install.sh
 
 ## Docker Installation
 
+> **Note:** The image must be built locally - it's not published to Docker Hub.
+
 ### Quick Start
 
 ```bash
-# Using Docker Compose (recommended)
-docker compose up -d
+# Build and run with Docker Compose (recommended)
+docker compose up -d --build
 
 # Or build and run directly
 docker build -t voicellama .
@@ -60,9 +62,9 @@ docker run --gpus all -p 8333:8333 voicellama:gpu
 
 | Profile | Command | Description |
 |---------|---------|-------------|
-| (default) | `docker compose up -d` | CPU-only, production |
-| `gpu` | `docker compose --profile gpu up -d` | GPU-enabled |
-| `dev` | `docker compose --profile dev up` | Development with hot reload |
+| (default) | `docker compose up -d --build` | CPU-only, production |
+| `gpu` | `docker compose --profile gpu up -d --build` | GPU-enabled |
+| `dev` | `docker compose --profile dev up --build` | Development with hot reload |
 
 ## Manual Installation
 
